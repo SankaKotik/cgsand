@@ -259,10 +259,10 @@ proc rebuildMenuBar(this: TitleBar) =
           (if config.terminalVisible[]: Visibility.collapsed else: Visibility.visible),
     ),
     MenuEntry(
-      text: tr"File tree",
+      text: tr"Activity bar",
       checkable: true,
-      checked: proc(): bool = config.fileTreeVisible[],
-      action: proc() = config.fileTreeVisible[] = not config.fileTreeVisible[],
+      checked: proc(): bool = config.activityBarVisible[],
+      action: proc() = config.activityBarVisible[] = not config.activityBarVisible[],
     ),
   ])
 

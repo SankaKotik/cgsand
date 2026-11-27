@@ -139,7 +139,12 @@ proc setupApp*(win: UiWindow): CgsandApp =
         this.left = binding:
           if config.codeEditorVisible[]:
             (if hexShown[]: app.hexEditor.right else: app.codeEditor.right)
-          else: parent.left
+          else:
+            # with the editor closed, the activity bar and the file/scene tree
+            # are still shown (when enabled), so the document view starts
+            # to the right of them
+            parent.left + (if config.activityBarVisible[]: activityBarWidth else: 0'f32) +
+              app.fileTree.w[] + app.sceneTree.w[]
         this.right = binding:
           if app.terminal.visibility[] == collapsed: parent.right
           else: app.terminal.left
@@ -152,6 +157,11 @@ proc setupApp*(win: UiWindow): CgsandApp =
         top = app.titleBar.bottom
         bottom = parent.bottom
         w = activityBarWidth
+        # hidden by the "View - Activity bar" menu item, together with the
+        # file/scene tree panel
+        visibility = binding:
+          if config.activityBarVisible[]: Visibility.visible
+          else: Visibility.collapsed
 
 
       # todo: use palettes from toscel
@@ -160,10 +170,11 @@ proc setupApp*(win: UiWindow): CgsandApp =
         top = app.titleBar.bottom
         bottom = parent.bottom
         w = binding:
-          (if config.fileTreeVisible[] and config.leftPanelView[] == "files": fileTreePanelWidth else: 0'f32)
+          (if config.activityBarVisible[] and config.fileTreeVisible[] and
+              config.leftPanelView[] == "files": fileTreePanelWidth else: 0'f32)
         visibility = binding:
-          if config.fileTreeVisible[] and config.leftPanelView[] == "files" and
-              config.codeEditorVisible[]:
+          if config.activityBarVisible[] and config.fileTreeVisible[] and
+              config.leftPanelView[] == "files":
             Visibility.visible
           else: Visibility.collapsed
 
@@ -176,10 +187,11 @@ proc setupApp*(win: UiWindow): CgsandApp =
         top = app.titleBar.bottom
         bottom = parent.bottom
         w = binding:
-          (if config.fileTreeVisible[] and config.leftPanelView[] == "scene": fileTreePanelWidth else: 0'f32)
+          (if config.activityBarVisible[] and config.fileTreeVisible[] and
+              config.leftPanelView[] == "scene": fileTreePanelWidth else: 0'f32)
         visibility = binding:
-          if config.fileTreeVisible[] and config.leftPanelView[] == "scene" and
-              config.codeEditorVisible[]:
+          if config.activityBarVisible[] and config.fileTreeVisible[] and
+              config.leftPanelView[] == "scene":
             Visibility.visible
           else: Visibility.collapsed
 
@@ -191,9 +203,11 @@ proc setupApp*(win: UiWindow): CgsandApp =
         w = binding: round(
           parent.w[] * config.codeEditorPortion[] /
           (config.codeEditorPortion[] + config.previewPortion[] + config.terminalPortion[])
-        ) - activityBarWidth - app.fileTree.w[] - app.sceneTree.w[]
+        ) - (if config.activityBarVisible[]: activityBarWidth else: 0'f32) -
+          app.fileTree.w[] - app.sceneTree.w[]
         this.left = binding:
-          parent.left + activityBarWidth + app.fileTree.w[] + app.sceneTree.w[]
+          parent.left + (if config.activityBarVisible[]: activityBarWidth else: 0'f32) +
+            app.fileTree.w[] + app.sceneTree.w[]
         this.fillVertical(parent)
         top = app.titleBar.bottom + 24
         bottom = parent.bottom
@@ -208,9 +222,11 @@ proc setupApp*(win: UiWindow): CgsandApp =
         w = binding: round(
           parent.w[] * config.codeEditorPortion[] /
           (config.codeEditorPortion[] + config.previewPortion[] + config.terminalPortion[])
-        ) - activityBarWidth - app.fileTree.w[] - app.sceneTree.w[]
+        ) - (if config.activityBarVisible[]: activityBarWidth else: 0'f32) -
+          app.fileTree.w[] - app.sceneTree.w[]
         this.left = binding:
-          parent.left + activityBarWidth + app.fileTree.w[] + app.sceneTree.w[]
+          parent.left + (if config.activityBarVisible[]: activityBarWidth else: 0'f32) +
+            app.fileTree.w[] + app.sceneTree.w[]
         this.fillVertical(parent)
         top = app.titleBar.bottom + 24
         bottom = parent.bottom
@@ -295,7 +311,9 @@ proc setupApp*(win: UiWindow): CgsandApp =
         visibility = binding:
           (if config.codeEditorVisible[]: Visibility.visible else: Visibility.collapsed)
         anchorGlobalX = binding:
-          app.codeEditor.globalX[] - activityBarWidth - app.fileTree.w[] - app.sceneTree.w[]
+          app.codeEditor.globalX[] -
+          (if config.activityBarVisible[]: activityBarWidth else: 0'f32) -
+          app.fileTree.w[] - app.sceneTree.w[]
 
         on this.resized:
           config.codeEditorPortion[] = max(e, 0) / contentArea.w[]

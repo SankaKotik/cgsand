@@ -99,8 +99,8 @@
     }
   },
   "src/cgsand/gui/title_bar.nim": {
-    "Options": {
-      "": "Параметры"
+    "Exit": {
+      "": "Выход"
     },
     "File": {
       "": "Файл"
@@ -125,6 +125,9 @@
     },
     "Libraries:": {
       "": "Библиотеки:"
+    },
+    "Activity bar": {
+      "": "Панель действий"
     },
     "Open file": {
       "": "Открыть файл"
@@ -159,17 +162,14 @@
     "Maintainers:": {
       "": "Мейнтейнеры:"
     },
-    "File tree": {
-      "": "Дерево файлов"
-    },
     "Key combinations": {
       "": "Комбинации клавиш"
     },
     "Save": {
       "": "Сохранить"
     },
-    "Exit": {
-      "": "Выход"
+    "Options": {
+      "": "Параметры"
     },
     "Unable to read file:": {
       "": "Не удалось открыть файл:"
@@ -228,8 +228,8 @@
     }
   },
   "src/cgsand/gui/settings.nim": {
-    "Diagnostics": {
-      "": "Диагностика"
+    "Dark": {
+      "": "Тёмная"
     },
     "nimsuggest": {
       "": "nimsuggest"
@@ -252,11 +252,11 @@
     "Theme": {
       "": "Тема"
     },
-    "Dark": {
-      "": "Тёмная"
-    },
     "Light": {
       "": "Светлая"
+    },
+    "Diagnostics": {
+      "": "Диагностика"
     }
   },
   "src/cgsand/gui/find_replace.nim": {

@@ -157,8 +157,13 @@ genconfig Config:
   codeEditorVisible: bool = true
   terminalVisible: bool = true
 
-  ## show the file tree panel to the left of the code editor
+  ## show the file tree panel to the left of the code editor;
+  ## toggled by the activity bar icons, not by the menu item
   fileTreeVisible: bool = true
+
+  ## show the activity bar (the icon column on the far left) together with
+  ## the left panel it controls
+  activityBarVisible: bool = true
 
   ## which view the activity bar shows in the left panel: "files" or "scene"
   leftPanelView: string = "files"
