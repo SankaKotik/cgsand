@@ -109,7 +109,10 @@ proc sceneRows(w: World): seq[SceneRow] =
     var row = SceneRow(eid: eid, label: entityLabel(record[].archetype))
     if w.hasComponent(eid, SourceLocation):
       let src = w[eid, SourceLocation]
-      row.path = src.file
+      # the string memory belongs to the script lib (it has its own Nim
+      # runtime), so it must be copied: the lib is unloaded on script
+      # recompile while the rows still reference the string
+      row.path = src.file[0 .. ^1]
       row.line = src.line
       row.col = src.col
     result.add row
@@ -125,7 +128,7 @@ proc collectRows(this: SceneTree): seq[SceneRow] =
 
 
 method init*(this: SceneTree) =
-  return
+  procCall this.super.init()
 
   this.makeLayout:
     - UiRect.new:
