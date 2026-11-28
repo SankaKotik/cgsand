@@ -1236,6 +1236,16 @@ proc toggleSelectionMode(this: CodeEditorContent) =
   redraw(this)
 
 
+proc foldableLineAtY(this: CodeEditorContent, y: float32): int =
+  ## index of the visible line whose fold toggle arrow is at local y, -1 if none
+  if this.arrangement == nil: return -1
+  for i, line in this.arrangement.lines:
+    if line.isHidden: continue
+    if y >= line.rect.y and y < line.rect.y + line.rect.h:
+      return if line.foldable: i else: -1
+  return -1
+
+
 method init*(this: CodeEditorContent) =
   procCall this.super.init()
 
@@ -1266,26 +1276,33 @@ method init*(this: CodeEditorContent) =
 
       root.nonFoldedArrowsVisible[] = binding: this.hovered[]
 
+      # hand cursor only over lines that have a clickable fold arrow,
+      # the default cursor over the rest of the bar
+      cursor = binding:
+        if this.hovered[] and root.foldableLineAtY(this.mouseY[]) >= 0:
+          (ref Cursor)(kind: builtin, builtin: BuiltinCursor.pointingHand)
+        else:
+          nil
+
       on this.pressed[] == true:
         setFocus root
 
       on this.clicked:
-        let clickY = this.mouseY[]
-        for i, line in root.arrangement.lines:
-          if line.isHidden: continue
-          if clickY >= line.rect.y and clickY < line.rect.y + line.rect.h:
-            if line.foldable:
-              root.arrangement.toggleFold(i)
-              root.updateHeight()
-              redraw(root)
-            break
+        let i = root.foldableLineAtY(this.mouseY[])
+        if i >= 0:
+          root.arrangement.toggleFold(i)
+          root.updateHeight()
+          redraw(root)
 
     - MouseArea.new:
       this.fillVertical(parent)
       x = binding: root.breakpointBarWidth[] + root.lineNumberBarWidth[] + root.changesBarWidth[] + root.arrowBarWidth[]
       w = binding: parent.w[] - (root.breakpointBarWidth[] + root.lineNumberBarWidth[] + root.changesBarWidth[] + root.arrowBarWidth[])
 
-      allowEventFallthrough = true
+      # NOTE: this area must not set allowEventFallthrough — an area with
+      # fallthrough never "claims" the mouse cursor, so the text cursor
+      # (cursor = BuiltinCursor.text) below would be ignored
+      cursor = BuiltinCursor.text
 
       on this.pressed[] == true:
         setFocus root
