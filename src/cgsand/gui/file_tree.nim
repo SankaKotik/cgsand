@@ -2,7 +2,7 @@
 ## root, folders are expanded/collapsed by click, files are opened by click
 
 import std/[os, algorithm]
-import pkg/sigui/[uibase, mouseArea, scrollArea, animations]
+import pkg/sigui/[uibase, mouseArea, scrollArea, animations, windowCreation]
 import pkg/toscel/[fonts, icons, transitions, colors, label]
 import ../logic/[configuration, file_openers]
 import ./breadcrumbs
@@ -22,7 +22,9 @@ type
       ## file highlighted as opened
     fileOpener* {.unprintable.}: Property[seq[FileOpener]]
 
-    expandedDirs: Property[seq[string]]
+    expandedDirs*: Property[seq[string]]
+      ## full paths of folders that show their children (plus plain names
+      ## from the default value, matching any folder with that name)
 
 registerComponent FileTree
 
@@ -155,8 +157,14 @@ method init(this: FileTree) =
           on this.clicked:
             if entry.isDir:
               var dirs = root.expandedDirs[]
-              if entry.path in dirs:
-                dirs.delete(dirs.find(entry.path))
+              if entry.expanded:
+                # the folder can be listed by a full path or by a plain name
+                # (the default expandedDirs uses plain names), remove both,
+                # otherwise the folder would stay expanded
+                let pathI = dirs.find(entry.path)
+                if pathI != -1: dirs.delete(pathI)
+                let nameI = dirs.find(entry.path.splitPath.tail)
+                if nameI != -1: dirs.delete(nameI)
               else:
                 dirs.add entry.path
               root.expandedDirs[] = dirs
@@ -164,3 +172,16 @@ method init(this: FileTree) =
               root.fileOpener[].open(Location(path: entry.path.absolutePath))
 
         rowY += treeRowHeight
+
+      # the rebuild replaces every row with new MouseAreas that haven't seen
+      # any real mouse move event yet, so a row doesn't know the cursor is
+      # over it and silently swallows the click that rebuilt the tree (e.g.
+      # the second click on a folder at the same position); re-dispatch the
+      # current mouse position to update hover states of the fresh tree
+      let win = root.parentUiWindow
+      if win != nil:
+        win.syncScale()
+        let mouseMove = new MouseMoveEvent
+        mouseMove[] = MouseMoveEvent(window: win.siwinWindow, pos: win.mouseState.pos,
+          kind: MouseMoveKind.move)
+        win.recieve(WindowEvent(sender: win, event: mouseMove))
